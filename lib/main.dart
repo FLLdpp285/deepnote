@@ -8,7 +8,7 @@ const colorScheme = ColorScheme(
   onSecondary: Color(0xFF131207),
   tertiary: Color(0xFFffffff),
   onTertiary: Color(0xFF131207),
-  surface: Color(0xFFffee00),
+  surface: Color(0xFFfff000),
   onSurface: Color(0xFF131207),
   error: Brightness.light == Brightness.light
       ? Color(0xffB3261E)
@@ -31,57 +31,149 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'DeepNote',
       theme: ThemeData(
-        colorScheme: colorScheme,
-        useMaterial3: true,
-      ),
-      home: const HomePage(title: 'My Notes'),
+          colorScheme: colorScheme, useMaterial3: true, fontFamily: 'Circular'),
+      home: const HomePage(),
     );
   }
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.title});
-  final String title;
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Center(
+            child: Text("My Notes",
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w700))),
+      ),
+      backgroundColor: Colors.white,
+      body: Center(
+          // Center is a layout widget. It takes a single child and positions it
+          // in the middle of the parent.
+          child: GridView.count(
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              crossAxisCount: 2,
+              padding: const EdgeInsets.all(20),
+              children: List.generate(
+                  100,
+                  (int index) => GestureDetector(
+                      onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  ViewCardPage(name: "Note #$index"))),
+                      child: Card(
+                          color: Theme.of(context).colorScheme.surface,
+                          child: Center(child: Text("$index"))))))),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => showDialog(
+            context: context,
+            builder: (BuildContext ctx) => Dialog.fullscreen(
+                    child: Center(
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                      Text("Waiting for connection...",
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineLarge
+                              ?.copyWith(fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 20),
+                      const Icon(Icons.usb, size: 70)
+                    ])))),
+        tooltip: 'New Note',
+        child: const Icon(Icons.note_add),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
   }
+}
+
+class ViewCardPage extends StatefulWidget {
+  const ViewCardPage({super.key, required this.name});
+
+  final String name;
+
+  @override
+  State<ViewCardPage> createState() => _ViewCardPageState();
+}
+
+class _ViewCardPageState extends State<ViewCardPage> {
+  int _selected = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        leading: const BackButton(),
+        title: Text(widget.name),
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.upload_file),
+              onPressed: () => showModalBottomSheet(
+                  context: context,
+                  builder: (context) => Padding(
+                    padding: const EdgeInsets.all(8.0).copyWith(bottom: 20),
+                    child: const Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                    ListTile(title: Text("Export as PDF"), leading: Icon(Icons.picture_as_pdf)),
+                    Divider(),
+                    ListTile(title: Text("Export as SVG"), leading: Icon(Icons.code)),
+                                        ],
+                                      ),
+                  ))),
+          IconButton(icon: const Icon(Icons.camera), onPressed: () => {})
+        ],
+        actionsPadding: const EdgeInsets.all(10),
       ),
-      body: Center(
-          // Center is a layout widget. It takes a single child and positions it
-          // in the middle of the parent.
-          child: GridView.count(crossAxisCount: 4, children: const [])),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      backgroundColor: Colors.white,
+      body: Row(children: [
+        LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: NavigationRail(
+                  selectedIndex: _selected,
+                  onDestinationSelected: (int dest) {
+                    setState(() {
+                      _selected = dest;
+                    });
+                  },
+                  selectedLabelTextStyle: Theme.of(context)
+                      .textTheme
+                      .labelMedium
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                  destinations: List.generate(
+                      10,
+                      (int index) => NavigationRailDestination(
+                          icon: const Icon(Icons.note_alt_outlined),
+                          selectedIcon: const Icon(Icons.note_alt),
+                          label: Text("10:${19 + index * 3}"))),
+                  labelType: NavigationRailLabelType.all,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const Expanded(
+            child: Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Placeholder(),
+        ))
+      ]),
     );
   }
 }

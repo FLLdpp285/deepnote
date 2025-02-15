@@ -85,6 +85,22 @@ flutter:
   #       - asset: fonts/TrajanPro.ttf
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
+
+  fonts:
+    - family: Circular
+      fonts:
+        - asset: fonts/lineto-circular-book.ttf
+        - asset: fonts/lineto-circular-bookItalic.ttf
+          style: italic
+        - asset: fonts/lineto-circular-medium.ttf
+        - asset: fonts/lineto-circular-mediumItalic.ttf
+          style: italic
+        - asset: fonts/lineto-circular-bold.ttf
+        - asset: fonts/lineto-circular-boldItalic.ttf
+          style: italic
+        - asset: fonts/lineto-circular-black.ttf
+        - asset: fonts/lineto-circular-blackItalic.ttf
+          style: italic
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
