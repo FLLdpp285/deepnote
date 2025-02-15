@@ -72,7 +72,7 @@ class _HomePageState extends State<HomePage> {
                           context,
                           MaterialPageRoute(
                               builder: (context) =>
-                                  ViewCardPage(name: "Note #$index"))),
+                                  ViewCardPage(name: "Session #$index"))),
                       child: Card(
                           color: Theme.of(context).colorScheme.surface,
                           child: Center(child: Text("$index"))))))),
@@ -108,15 +108,30 @@ class ViewCardPage extends StatefulWidget {
   State<ViewCardPage> createState() => _ViewCardPageState();
 }
 
+class Note extends StatelessWidget {
+  final String time;
+  final Widget thumbnail;
+
+  const Note({required this.time, required this.thumbnail});
+
+  @override
+  Widget build(BuildContext context) {
+    return Placeholder();
+  }
+}
+
+final String dpp_logo_url = "https://static.wixstatic.com/media/148775_8f1484c02eed186d1beaeeafef89f82b.png/v1/fill/w_69,h_76,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/148775_8f1484c02eed186d1beaeeafef89f82b.png";
+
 class _ViewCardPageState extends State<ViewCardPage> {
   int _selected = 0;
+  List<Note> _notes = List.generate(10, (int index) => Note(time: "10:${19 + 3*index}", thumbnail: Image.network(dpp_logo_url, width: 13)));
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: const BackButton(),
-        title: Text(widget.name),
+        title: Text("${widget.name} - Note at ${_notes[_selected].time}"),
         actions: [
           IconButton(
               icon: const Icon(Icons.upload_file),
@@ -124,17 +139,17 @@ class _ViewCardPageState extends State<ViewCardPage> {
                   context: context,
                   builder: (context) => Padding(
                     padding: const EdgeInsets.all(8.0).copyWith(bottom: 20),
-                    child: const Column(
+                    child: Column(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                    ListTile(title: Text("Export as PDF"), leading: Icon(Icons.picture_as_pdf)),
+                    ListTile(title: Text("Export as PDF"), leading: Icon(Icons.picture_as_pdf), onTap: () => Navigator.pop(context)),
                     Divider(),
-                    ListTile(title: Text("Export as SVG"), leading: Icon(Icons.code)),
+                    ListTile(title: Text("Export as SVG"), leading: Icon(Icons.code), onTap: () => Navigator.pop(context)),
                                         ],
                                       ),
                   ))),
-          IconButton(icon: const Icon(Icons.camera), onPressed: () => {})
+          IconButton(icon: const Icon(Icons.attach_file), onPressed: () => {}),
         ],
         actionsPadding: const EdgeInsets.all(10),
       ),
@@ -156,12 +171,7 @@ class _ViewCardPageState extends State<ViewCardPage> {
                       .textTheme
                       .labelMedium
                       ?.copyWith(fontWeight: FontWeight.w700),
-                  destinations: List.generate(
-                      10,
-                      (int index) => NavigationRailDestination(
-                          icon: const Icon(Icons.note_alt_outlined),
-                          selectedIcon: const Icon(Icons.note_alt),
-                          label: Text("10:${19 + index * 3}"))),
+                  destinations: _notes.map((Note n) => NavigationRailDestination(icon: n.thumbnail, label: Text(n.time))).toList(),
                   labelType: NavigationRailLabelType.all,
                 ),
               ),
