@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'dart:math';
 
 const colorScheme = ColorScheme(
   brightness: Brightness.light,
@@ -49,12 +51,15 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Center(
+        title: Row(children: [
+          Image.asset("images/DeepNote.png", height: 40),
+          Expanded(child: Center(
             child: Text("My Notes",
                 style: Theme.of(context)
                     .textTheme
                     .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w700))),
+                    ?.copyWith(fontWeight: FontWeight.w700))))
+          ]),
       ),
       backgroundColor: Colors.white,
       body: Center(
@@ -110,9 +115,13 @@ class ViewCardPage extends StatefulWidget {
 
 class Note extends StatelessWidget {
   final String time;
+  double temp = 27.3;
+  double depth = 5;
+  double salinity = 3.8;
   final Widget thumbnail;
+  final String summary = "A concise summary.";
 
-  const Note({required this.time, required this.thumbnail});
+  Note({required this.time, required this.thumbnail, this.temp = 27.3, this.depth = 5, this.salinity = 3.8});
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +133,10 @@ final String dpp_logo_url = "https://static.wixstatic.com/media/148775_8f1484c02
 
 class _ViewCardPageState extends State<ViewCardPage> {
   int _selected = 0;
-  List<Note> _notes = List.generate(10, (int index) => Note(time: "10:${19 + 3*index}", thumbnail: Image.network(dpp_logo_url, width: 13)));
+  List<Note> _notes = List.generate(10, (int index) {
+    var rng = Random();
+    return Note(time: "10:${19 + 3*index}", thumbnail: Image.network(dpp_logo_url, width: 13), temp: 27 + rng.nextInt(20) * 0.1);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -155,29 +167,33 @@ class _ViewCardPageState extends State<ViewCardPage> {
       ),
       backgroundColor: Colors.white,
       body: Row(children: [
-        LayoutBuilder(
-          builder: (context, constraints) => SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: IntrinsicHeight(
-                child: NavigationRail(
-                  selectedIndex: _selected,
-                  onDestinationSelected: (int dest) {
-                    setState(() {
-                      _selected = dest;
-                    });
-                  },
-                  selectedLabelTextStyle: Theme.of(context)
-                      .textTheme
-                      .labelMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
-                  destinations: _notes.map((Note n) => NavigationRailDestination(icon: n.thumbnail, label: Text(n.time))).toList(),
-                  labelType: NavigationRailLabelType.all,
-                ),
-              ),
-            ),
-          ),
-        ),
+        SizedBox(width: 330, child: ListView.separated(
+          itemCount: _notes.length,
+          separatorBuilder: (context, index) => const Divider(),
+          itemBuilder: (context, index) {
+            Note note = _notes[index];
+
+            return ListTile(
+            leading: Image.network(dpp_logo_url, width: 30),
+            title: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(note.time, style: Theme.of(context).textTheme?.labelLarge),
+                SizedBox(width: 8),
+                Icon(Icons.thermostat),
+                Text(style: Theme.of(context).textTheme?.labelMedium, "${note.temp}\u00b0"),
+                SizedBox(width: 8),
+                Icon(Icons.water),
+                Text(style: Theme.of(context).textTheme?.labelMedium, "${note.depth}\u006d"),
+                SizedBox(width: 8),
+                SvgPicture.asset("images/salinity.svg", height: Theme.of(context).textTheme?.labelMedium?.fontSize),
+                Text(style: Theme.of(context).textTheme?.labelMedium, "${note.salinity / 10}\u0070\u0070\u0074"),
+              ]),
+            subtitle: Row(spacing: 5, children: [Icon(Icons.auto_awesome, size: 15), Text(note.summary)]),
+          ); },
+          padding: const EdgeInsets.all(8.0)
+        )),
+        const VerticalDivider(),
         const Expanded(
             child: Padding(
           padding: EdgeInsets.all(8.0),
