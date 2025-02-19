@@ -40,6 +40,7 @@ dependencies:
   intl: ^0.20.2
   file_picker: ^9.0.0
   exif: ^3.3.0
+  flutter_launcher_icons: ^0.14.3
 
 dev_dependencies:
   flutter_test:
@@ -51,6 +52,22 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "images/applogo.png"
+  web:
+    generate: true
+    image_path: "images/applogo.png"
+    background_color: "#FFFFFF"
+    theme_color: "#FFF000"
+  windows:
+    generate: true
+    image_path: "images/applogo.png"
+  macos:
+    generate: true
+    image_path: "images/applogo.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
