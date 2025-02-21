@@ -39,11 +39,12 @@ class ConnectDialog extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text("Importing..."),
-                      SizedBox(height: 30),
+                      SizedBox(height: 30, child: SizedBox.expand()),
                       CircularProgressIndicator(color: Colors.black),
                     ]);
               }
               return Stack(
+                alignment: AlignmentDirectional.topEnd,
                 children: [
                   Center(
                       child: Column(
