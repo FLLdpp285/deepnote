@@ -104,8 +104,15 @@ class _HomePageState extends State<HomePage> {
                   onStateChange: onStateChange,
                   onCharging: () {
                     setState(() {
-                      _notebooks.add(Notebook.placeholder(DateTime.now(),
-                          name: "25/03/2025"));
+                      _notebooks.add(Notebook(created: DateTime.now(),
+                          name: "25/03/2025", 
+                          notes: List.generate(9, (index) => 
+                            Note(
+                              time: DateTime.now().subtract(const Duration(hours: 1)).add(Duration(minutes: index)),
+                              img: Image.asset("images/notes/${index + 1}.PNG"),
+                              depth: 2.85,
+                              temp: 28.5,
+                            ))));
                     });
                     if (context.mounted) {
                       Navigator.pop(context);
@@ -113,6 +120,7 @@ class _HomePageState extends State<HomePage> {
                     }
                   })),
           tooltip: 'New Note',
+          backgroundColor: Theme.of(context).cardColor,
           child: const Icon(Icons.note_add),
         ),
       ),
@@ -147,8 +155,8 @@ class NavigationListTile extends StatelessWidget {
         title: Text(title),
         onTap: onTap,
         selected: selected,
-        selectedTileColor: Theme.of(context).primaryColor,
-        selectedColor: Theme.of(context).colorScheme.onPrimary,
+        selectedTileColor: Theme.of(context).cardColor,
+        selectedColor: Theme.of(context).colorScheme.onSurface,
         tileColor: tileColor,
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(12))));

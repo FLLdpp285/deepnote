@@ -32,7 +32,7 @@ class ConnectDialog extends StatelessWidget {
         child: StreamBuilder(
             stream: onStateChange,
             builder: (context, batteryState) {
-              if (batteryState.data != BatteryState.discharging) {
+              if (batteryState.data == BatteryState.charging || batteryState.data == BatteryState.connectedNotCharging) {
                 Future.delayed(const Duration(seconds: 2), onCharging);
                 return const Column(
                     crossAxisAlignment: CrossAxisAlignment.center,

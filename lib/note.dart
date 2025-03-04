@@ -37,8 +37,9 @@ class Note {
 
 class NoteDisplay extends StatelessWidget {
   final Note note;
+  final TransformationController _tc = TransformationController();
 
-  const NoteDisplay({
+  NoteDisplay({
     super.key,
     required this.note,
   });
@@ -47,6 +48,7 @@ class NoteDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(fit: StackFit.expand, children: [
       InteractiveViewer(
+        transformationController: _tc,
         clipBehavior: Clip.hardEdge,
         maxScale: 10,
         child: note.img == null
@@ -282,6 +284,9 @@ class _ViewNotePageState extends State<ViewNotePage> {
                     note: nb.notes[index],
                     isSelected: _selected == index,
                     onTap: () => setState(() {
+                          if (_selected != index) { 
+                            nb.notes[index].display()._tc.value = Matrix4.identity();
+                          }
                           _selected = index;
                         }),
                     onLongPress: () => showMenu),

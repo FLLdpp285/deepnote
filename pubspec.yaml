@@ -82,10 +82,8 @@ flutter:
   uses-material-design: true
 
   assets:
-    - images/salinity.svg
-    - images/DeepNote.png
-    - images/D++285logo.png
-    - images/made-by-kids.png
+    - images/
+    - images/notes/
 
   fonts:
     - family: Circular
