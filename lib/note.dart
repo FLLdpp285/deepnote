@@ -18,13 +18,13 @@ class Note {
 
   const Note(
       {required this.time,
-        this.temp = 28.0,
-        this.depth = 5.0,
-        this.salinity = 38.5,
-        this.thumbnail,
-        this.img,
-        this.summary = "A concise summary.",
-        this.isExternal = false});
+      this.temp = 28.0,
+      this.depth = 5.0,
+      this.salinity = 38.5,
+      this.thumbnail,
+      this.img,
+      this.summary = "A concise summary.",
+      this.isExternal = false});
 
   String daytime() {
     return DateFormat("HH:mm").format(time);
@@ -179,8 +179,7 @@ class Notebook {
               depth: 4.5 + rng.nextInt(10) * 0.1,
               salinity: 38 + rng.nextInt(50) * 0.1,
               temp: 27 + rng.nextInt(30) * 0.1,
-            )
-    );
+            ));
     return Notebook(notes: notes, name: name, created: created);
   }
 
@@ -251,8 +250,13 @@ class _ViewNotePageState extends State<ViewNotePage> {
                     Image img = Image.file(file);
                     Map<String, IfdTag> data = await readExifFromFile(file);
                     DateFormat fmt = DateFormat("yyyy:MM:dd HH:mm:ss");
-                    DateTime imageTime =
-                        fmt.parse(data["EXIF DateTimeOriginal"]!.printable);
+                    IfdTag? dateTimeOriginal = data["EXIF DateTimeOriginal"];
+                    DateTime imageTime;
+                    if (dateTimeOriginal != null) {
+                      imageTime = fmt.parse(dateTimeOriginal.printable);
+                    } else {
+                      imageTime = await file.lastModified();
+                    }
                     Note note = Note(
                       img: img,
                       thumbnail: CircleAvatar(backgroundImage: img.image),
@@ -278,19 +282,31 @@ class _ViewNotePageState extends State<ViewNotePage> {
       backgroundColor: Colors.white,
       body: Row(children: [
         Expanded(
-            child: ListView.builder(
-                itemCount: nb.notes.length,
-                itemBuilder: (context, index) => SidebarCard(
-                    note: nb.notes[index],
-                    isSelected: _selected == index,
-                    onTap: () => setState(() {
-                          if (_selected != index) { 
-                            nb.notes[index].display()._tc.value = Matrix4.identity();
-                          }
-                          _selected = index;
-                        }),
-                    onLongPress: () => showMenu),
-                padding: const EdgeInsets.all(8.0))),
+            child: Column(
+              spacing: 8,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: SearchBar(hintText: "Search notes..."),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                      itemCount: nb.notes.length,
+                      itemBuilder: (context, index) => SidebarCard(
+                          note: nb.notes[index],
+                          isSelected: _selected == index,
+                          onTap: () => setState(() {
+                                if (_selected != index) {
+                                  nb.notes[index].display()._tc.value =
+                                      Matrix4.identity();
+                                }
+                                _selected = index;
+                              }),
+                          onLongPress: () => showMenu),
+                      padding: const EdgeInsets.all(8.0)),
+                ),
+              ],
+            )),
         const VerticalDivider(),
         Expanded(flex: 2, child: nb.notes[_selected].display())
       ]),

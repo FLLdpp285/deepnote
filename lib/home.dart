@@ -86,14 +86,28 @@ class _HomePageState extends State<HomePage> {
             const VerticalDivider(),
             Expanded(
                 flex: 2,
-                child: GridView.count(
-                  crossAxisSpacing: 30,
-                  mainAxisSpacing: 30,
-                  crossAxisCount: 3,
-                  padding: const EdgeInsets.all(20),
-                  children: _notebooks
-                      .map((nb) => NotebookCard(notebook: nb))
-                      .toList(),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    spacing: 10,
+                    children: [
+                      const SearchBar(
+                        leading: Icon(Icons.search),
+                        hintText: "Search all notebooks...",
+                      ),
+                      Expanded(
+                        child: GridView.count(
+                          crossAxisSpacing: 30,
+                          mainAxisSpacing: 30,
+                          crossAxisCount: 3,
+                          padding: const EdgeInsets.all(20),
+                          children: _notebooks
+                              .map((nb) => NotebookCard(notebook: nb))
+                              .toList(),
+                        ),
+                      ),
+                    ],
+                  ),
                 )),
           ],
         ),
@@ -105,8 +119,8 @@ class _HomePageState extends State<HomePage> {
                   onCharging: () {
                     setState(() {
                       _notebooks.add(Notebook(created: DateTime.now(),
-                          name: "25/03/2025", 
-                          notes: List.generate(9, (index) => 
+                          name: "25/03/2025",
+                          notes: List.generate(9, (index) =>
                             Note(
                               time: DateTime.now().subtract(const Duration(hours: 1)).add(Duration(minutes: index)),
                               img: Image.asset("images/notes/${index + 1}.PNG"),

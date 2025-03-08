@@ -11,7 +11,7 @@ class ErrorDialog extends StatelessWidget {
     return AlertDialog(
         title: const Text("Error"),
         content: Text(
-            "An error occurred while importing images${description == null ? "" : ":\n$description"}"),
+            "An error occurred${description == null ? "" : ":\n$description"}"),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context), child: const Text('OK'))
