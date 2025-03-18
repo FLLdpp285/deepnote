@@ -12,6 +12,59 @@ String today() {
   return fmt.format(dateTime);
 }
 
+List<Note> notes = [
+  Note(
+      time: DateTime.now().subtract(const Duration(hours: 1)),
+      img: Image.asset("images/notes/1.PNG"),
+      depth: 2.85,
+      temp: 28.5,
+      summary: "Unknown Species",
+      fullText: "Unknown Species Photo"),
+  Note(
+      time: DateTime.now().subtract(const Duration(hours: 1, minutes: 3)),
+      img: Image.asset("images/notes/2.PNG"),
+      depth: 2.85,
+      temp: 28.5,
+      summary: "Blue Goby Fish",
+      fullText: "32 neon blue goby, good"),
+  Note(
+      time: DateTime.now().subtract(const Duration(hours: 1, minutes: 6)),
+      img: Image.asset("images/notes/3.PNG"),
+      depth: 2.85,
+      temp: 28.5,
+      summary: "Turtle Resting",
+      fullText: "Turtle resting not moving"),
+  Note(
+      time: DateTime.now().subtract(const Duration(hours: 1, minutes: 9)),
+      img: Image.asset("images/notes/4.PNG"),
+      depth: 2.85,
+      temp: 28.5,
+      summary: "Fungi",
+      fullText: "61 Fungiidae"),
+  Note(
+      time: DateTime.now().subtract(const Duration(hours: 1, minutes: 12)),
+      img: Image.asset("images/notes/5.PNG"),
+      depth: 2.85,
+      temp: 28.5,
+      summary: "Invasive Species",
+      fullText: "Invasive Species"),
+  Note(
+      time: DateTime.now().subtract(const Duration(hours: 1, minutes: 15)),
+      img: Image.asset("images/notes/6.PNG"),
+      depth: 2.85,
+      temp: 28.5,
+      summary: "Staghorn Coral",
+      fullText: "43 Staghorn Coral"),
+  Note(
+      time: DateTime.now().subtract(const Duration(hours: 1, minutes: 18)),
+      img: Image.asset("images/notes/7.PNG"),
+      depth: 2.85,
+      temp: 28.5,
+      summary: "Bubble Coral",
+    fullText: "7 Bubble Coral",
+  ),
+];
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -49,7 +102,8 @@ class _HomePageState extends State<HomePage> {
           children: [
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     spacing: 8,
@@ -72,14 +126,13 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const Expanded(child: SizedBox()),
                       NavigationListTile(
-                        leading: const Icon(Icons.account_circle),
-                        title: "My Account",
-                        onTap: () => setState(() {
-                          _page = 2;
-                        }),
-                        selected: _page == 2,
-                        tileColor: Colors.grey.shade300
-                      ),
+                          leading: const Icon(Icons.account_circle),
+                          title: "My Account",
+                          onTap: () => setState(() {
+                                _page = 2;
+                              }),
+                          selected: _page == 2,
+                          tileColor: Colors.grey.shade300),
                     ]),
               ),
             ),
@@ -111,22 +164,17 @@ class _HomePageState extends State<HomePage> {
                 )),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
+        floatingActionButton: FloatingActionButton.large(
           onPressed: () => showDialog(
               context: context,
               builder: (context) => ConnectDialog(
                   onStateChange: onStateChange,
                   onCharging: () {
                     setState(() {
-                      _notebooks.add(Notebook(created: DateTime.now(),
+                      _notebooks.add(Notebook(
+                          created: DateTime.now(),
                           name: "25/03/2025",
-                          notes: List.generate(9, (index) =>
-                            Note(
-                              time: DateTime.now().subtract(const Duration(hours: 1)).add(Duration(minutes: index)),
-                              img: Image.asset("images/notes/${index + 1}.PNG"),
-                              depth: 2.85,
-                              temp: 28.5,
-                            ))));
+                          notes: notes));
                     });
                     if (context.mounted) {
                       Navigator.pop(context);

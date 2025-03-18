@@ -14,6 +14,7 @@ class Note {
   final Widget? thumbnail;
   final Image? img;
   final String summary;
+  final String? fullText;
   final bool isExternal;
 
   const Note(
@@ -24,6 +25,7 @@ class Note {
       this.thumbnail,
       this.img,
       this.summary = "A concise summary.",
+      this.fullText,
       this.isExternal = false});
 
   String daytime() {
@@ -32,6 +34,35 @@ class Note {
 
   NoteDisplay display() {
     return NoteDisplay(note: this);
+  }
+
+  int searchPriority(String search) {
+    // if search is empty, order by time
+    if (search.trim().isEmpty) {
+      return DateTime.now().millisecondsSinceEpoch - time.millisecondsSinceEpoch;
+    }
+
+    // split search into keywords
+    final Iterable<String> keywords =
+        search.split(" ").map((s) => s.toLowerCase().trim());
+
+    // order by how many times keywords appear in summary and fullText. summary is more important than fullText
+    int summaryPriority = 0;
+    int fullTextPriority = 0;
+    for (String keyword in keywords) {
+      if (keyword.isEmpty) {
+        continue;
+      }
+
+      if (summary.toLowerCase().contains(keyword)) {
+        summaryPriority++;
+      }
+      if (fullText != null && fullText!.toLowerCase().contains(keyword)) {
+        fullTextPriority++;
+      }
+    }
+
+    return summaryPriority * 2 + fullTextPriority;
   }
 }
 
@@ -124,7 +155,7 @@ class SidebarCard extends StatelessWidget {
       onTap: onTap,
       onLongPress: onLongPress,
       child: ListTile(
-        leading: note.thumbnail,
+        leading: note.thumbnail ?? CircleAvatar(backgroundImage: note.img?.image),
         title: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
@@ -204,6 +235,8 @@ class Notebook {
 class _ViewNotePageState extends State<ViewNotePage> {
   int _selected = 0;
 
+  String _search = "";
+
   @override
   Widget build(BuildContext context) {
     Notebook nb = widget.notebook;
@@ -235,47 +268,7 @@ class _ViewNotePageState extends State<ViewNotePage> {
                         ),
                       ))),
           IconButton(
-              icon: const Icon(Icons.attach_file),
-              onPressed: () async {
-                FilePickerResult? files = await FilePicker.platform
-                    .pickFiles(type: FileType.media, allowMultiple: true);
-
-                if (files == null) {
-                  return;
-                }
-
-                try {
-                  for (PlatformFile f in files.files) {
-                    File file = File(f.path!);
-                    Image img = Image.file(file);
-                    Map<String, IfdTag> data = await readExifFromFile(file);
-                    DateFormat fmt = DateFormat("yyyy:MM:dd HH:mm:ss");
-                    IfdTag? dateTimeOriginal = data["EXIF DateTimeOriginal"];
-                    DateTime imageTime;
-                    if (dateTimeOriginal != null) {
-                      imageTime = fmt.parse(dateTimeOriginal.printable);
-                    } else {
-                      imageTime = await file.lastModified();
-                    }
-                    Note note = Note(
-                      img: img,
-                      thumbnail: CircleAvatar(backgroundImage: img.image),
-                      time: imageTime,
-                      isExternal: true,
-                    );
-                    setState(() {
-                      nb.addNote(note);
-                    });
-                  }
-                } catch (err) {
-                  if (context.mounted) {
-                    showDialog(
-                        context: context,
-                        builder: (context) =>
-                            ErrorDialog(description: err.toString()));
-                  }
-                }
-              }),
+              icon: const Icon(Icons.attach_file), onPressed: _pickFiles),
         ],
         actionsPadding: const EdgeInsets.all(10),
       ),
@@ -283,33 +276,91 @@ class _ViewNotePageState extends State<ViewNotePage> {
       body: Row(children: [
         Expanded(
             child: Column(
-              spacing: 8,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: SearchBar(hintText: "Search notes..."),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                      itemCount: nb.notes.length,
-                      itemBuilder: (context, index) => SidebarCard(
-                          note: nb.notes[index],
-                          isSelected: _selected == index,
-                          onTap: () => setState(() {
-                                if (_selected != index) {
-                                  nb.notes[index].display()._tc.value =
-                                      Matrix4.identity();
-                                }
-                                _selected = index;
-                              }),
-                          onLongPress: () => showMenu),
-                      padding: const EdgeInsets.all(8.0)),
-                ),
-              ],
-            )),
+          spacing: 8,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SearchBar(
+                  hintText: "Search notes...",
+                  onChanged: (String val) {
+                    setState(() {
+                      _search = val;
+                    });
+                  },
+                  onSubmitted: (String val) {
+                    setState(() {
+                      _search = val;
+                    });
+                  }),
+            ),
+            Expanded(
+              child: ListView(
+                children: (nb.notes
+                      ..sort((Note a, Note b) => -a
+                          .searchPriority(_search)
+                          .compareTo(b.searchPriority(_search))))
+                    .where((note) => note.searchPriority(_search) > 0)
+                    .map((note) => SidebarCard(
+                        note: note,
+                        isSelected: _selected == nb.notes.indexOf(note),
+                        onTap: () => setState(() {
+                              if (_selected != nb.notes.indexOf(note)) {
+                                nb.notes[nb.notes.indexOf(note)]
+                                    .display()
+                                    ._tc
+                                    .value = Matrix4.identity();
+                              }
+                              _selected = nb.notes.indexOf(note);
+                            }),
+                        onLongPress: () => showMenu))
+                    .toList(),
+              ),
+            ),
+          ],
+        )),
         const VerticalDivider(),
         Expanded(flex: 2, child: nb.notes[_selected].display())
       ]),
     );
+  }
+
+  Future<void> _pickFiles() async {
+    FilePickerResult? files = await FilePicker.platform
+        .pickFiles(type: FileType.media, allowMultiple: true);
+
+    if (files == null) {
+      return;
+    }
+
+    try {
+      for (PlatformFile f in files.files) {
+        File file = File(f.path!);
+        Image img = Image.file(file);
+        Map<String, IfdTag> data = await readExifFromFile(file);
+        DateFormat fmt = DateFormat("yyyy:MM:dd HH:mm:ss");
+        IfdTag? dateTimeOriginal = data["EXIF DateTimeOriginal"];
+        DateTime imageTime;
+        if (dateTimeOriginal != null) {
+          imageTime = fmt.parse(dateTimeOriginal.printable);
+        } else {
+          imageTime = await file.lastModified();
+        }
+        Note note = Note(
+          img: img,
+          thumbnail: CircleAvatar(backgroundImage: img.image),
+          time: imageTime,
+          isExternal: true,
+        );
+        setState(() {
+          widget.notebook.addNote(note);
+        });
+      }
+    } catch (err) {
+      if (context.mounted) {
+        showDialog(
+            context: context,
+            builder: (context) => ErrorDialog(description: err.toString()));
+      }
+    }
   }
 }

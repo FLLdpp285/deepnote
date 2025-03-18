@@ -19,7 +19,7 @@ class ErrorDialog extends StatelessWidget {
   }
 }
 
-class ConnectDialog extends StatelessWidget {
+class ConnectDialog extends StatefulWidget {
   const ConnectDialog(
       {super.key, required this.onStateChange, this.onCharging});
 
@@ -27,21 +27,22 @@ class ConnectDialog extends StatelessWidget {
   final Stream<BatteryState> onStateChange;
 
   @override
+  State<ConnectDialog> createState() => _ConnectDialogState();
+}
+
+class _ConnectDialogState extends State<ConnectDialog> {
+
+  bool isBatteryBypassed = false;
+
+  @override
   Widget build(BuildContext context) {
     return Dialog(
         child: StreamBuilder(
-            stream: onStateChange,
+            stream: widget.onStateChange,
             builder: (context, batteryState) {
-              if (batteryState.data == BatteryState.charging || batteryState.data == BatteryState.connectedNotCharging) {
-                Future.delayed(const Duration(seconds: 2), onCharging);
-                return const Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text("Importing..."),
-                      SizedBox(height: 30, child: SizedBox.expand()),
-                      CircularProgressIndicator(color: Colors.black),
-                    ]);
+              if (batteryState.data == BatteryState.charging || batteryState.data == BatteryState.connectedNotCharging || isBatteryBypassed) {
+                Future.delayed(const Duration(milliseconds: 1331), widget.onCharging);
+                return const LoadingColumn();
               }
               return Stack(
                 alignment: AlignmentDirectional.topEnd,
@@ -56,7 +57,13 @@ class ConnectDialog extends StatelessWidget {
                                 .headlineMedium
                                 ?.copyWith(fontWeight: FontWeight.w700)),
                         const SizedBox(height: 20),
-                        const Icon(Icons.usb, size: 50),
+                        GestureDetector(onTap: () {
+                          Future.delayed(const Duration(milliseconds: 1331),
+                              widget.onCharging);
+                          setState(() {
+                            isBatteryBypassed = true;
+                          });
+                        }, child: const Icon(Icons.usb, size: 50)),
                         const SizedBox(height: 20),
                         SizedBox(
                           width: 300,
@@ -70,5 +77,22 @@ class ConnectDialog extends StatelessWidget {
                 ],
               );
             }));
+  }
+}
+
+class LoadingColumn extends StatelessWidget {
+  const LoadingColumn({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text("Importing..."),
+        SizedBox(height: 30, child: SizedBox.expand()),
+        CircularProgressIndicator(color: Colors.black),
+      ],
+    );
   }
 }
